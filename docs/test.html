@@ -28,11 +28,8 @@
         // Replace with your WordPress REST API URL
         const apiUrl = 'https://www.snand.org/wp-json/wp/v2/comments?post=3131';
 
-        fetch(apiUrl, {
-            headers: {
-                'Authorization': 'Bearer YOUR_CLOUDFLARE_API_TOKEN'
-            }
-        })
+        fetch(apiUrl)
+        
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
