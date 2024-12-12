@@ -47,7 +47,20 @@
             data.forEach(comment => {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = 'message';
-                messageDiv.innerHTML = `<p>${comment.content.rendered}</p>`;
+
+                // Extract author, comment, and date
+                const author = comment.author_name; // Name of the author
+                const content = comment.content.rendered; // The comment itself
+                const date = new Date(comment.date).toLocaleString(); // Format the date
+
+                // Build the HTML content
+                messageDiv.innerHTML = `
+                    <p><strong>Author:</strong> ${author}</p>
+                    <p>${content}</p>
+                    <p><small><em>${date}</em></small></p>
+                `;
+
+                // Append the message to the container
                 messagesContainer.appendChild(messageDiv);
             });
         })
