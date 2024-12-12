@@ -21,6 +21,17 @@
             margin-bottom: 10px;
         }
 
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header-image {
+            max-height: 60px;
+            height: auto;
+            width: auto;
+        }
+
         /* Message Container */
         #messages {
             font-size: 1.2em; /* Readable font size for older eyes */
@@ -53,7 +64,9 @@
     </style>
 </head>
 <body>
-    <h1>Chamboard</h1>
+    <div class="header">
+        <img src="chamboard.jpeg" alt="Chamboard" class="header-image">
+    </div>
     <div id="messages">Loading...</div>
 
     <script>
