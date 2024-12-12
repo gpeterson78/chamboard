@@ -28,24 +28,39 @@
         // Replace with your WordPress REST API URL
         const apiUrl = 'https://www.snand.org/wp-json/wp/v2/comments?post=3131';
 
-        fetch(apiUrl)
-            .then(response => response.json())
-            .then(data => {
-                // Clear the loading message
-                messagesContainer.innerHTML = '';
+        fetch(apiUrl, {
+            headers: {
+                'Authorization': 'Bearer YOUR_CLOUDFLARE_API_TOKEN'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Clear the loading message
+            messagesContainer.innerHTML = '';
 
-                // Loop through and display each comment
-                data.forEach(comment => {
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = 'message';
-                    messageDiv.innerHTML = `<p>${comment.content.rendered}</p>`;
-                    messagesContainer.appendChild(messageDiv);
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching messages:', error);
-                messagesContainer.innerHTML = 'Error loading messages.';
+            // Loop through and display each comment
+            data.forEach(comment => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                messageDiv.innerHTML = `<p>${comment.content.rendered}</p>`;
+                messagesContainer.appendChild(messageDiv);
             });
+        })
+        .catch(error => {
+            console.error('Error fetching messages:', error);
+            messagesContainer.innerHTML = 'Error loading messages.';
+        });
     </script>
 </body>
 </html>
+
+
+
+
+
+
