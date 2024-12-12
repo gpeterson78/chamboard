@@ -5,21 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>chamboard</title>
     <style>
+        /* General Reset */
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px; /* Adjust for your ePaper */
+            max-width: 480px; /* Adjust for portrait mode */
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px; /* Smaller padding for compactness */
+            background-color: #fff; /* High contrast for readability */
         }
+
+        /* Header Styles */
+        h1 {
+            font-size: 1.5em; /* Larger title font */
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header-image {
+            max-height: 85px;
+            height: auto;
+            width: auto;
+        }
+
+        /* Message Container */
+        #messages {
+            font-size: 1.2em; /* Readable font size for older eyes */
+            line-height: 1.4; /* Adjust line spacing for compactness */
+        }
+
         .message {
-            margin: 10px 0;
-            padding: 10px;
-            border-bottom: 1px solid #ccc;
+            margin: 5px 0; /* Reduced spacing between messages */
+            padding: 5px; /* Reduced padding for compact layout */
+            border-bottom: 1px solid #aaa; /* Lighter border for separation */
+        }
+
+        .message:last-child {
+            border-bottom: none; /* Remove border from the last message */
+        }
+
+        /* Author and Date Styling */
+        .message p {
+            margin: 2px 0; /* Minimal spacing for compactness */
+        }
+
+        .message strong {
+            font-weight: bold; /* Emphasize author */
+        }
+
+        .message small {
+            font-size: 0.9em; /* Slightly smaller for less important text */
+            color: #555; /* Dim the date text for visual hierarchy */
         }
     </style>
 </head>
 <body>
-    <h1>Chamboard</h1>
+    <div class="header">
+        <img src="chamboard.jpeg" alt="chamboard" class="header-image">
+    </div>
     <div id="messages">Loading...</div>
 
     <script>
@@ -29,7 +76,6 @@
         const apiUrl = 'https://www.snand.org/wp-json/wp/v2/comments?post=3131';
 
         fetch(apiUrl)
-        
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -68,9 +114,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
