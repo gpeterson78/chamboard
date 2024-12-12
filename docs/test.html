@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ePaper Messages</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px; /* Adjust for your ePaper */
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Latest Messages</h1>
+    <div id="messages">Loading...</div>
+
+    <script>
+        const messagesContainer = document.getElementById('messages');
+
+        // Replace with your WordPress REST API URL
+        const apiUrl = 'https://www.snand.org/wp-json/wp/v2/comments?post=3131';
+
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                // Clear the loading message
+                messagesContainer.innerHTML = '';
+
+                // Loop through and display each comment
+                data.forEach(comment => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message';
+                    messageDiv.innerHTML = `<p>${comment.content.rendered}</p>`;
+                    messagesContainer.appendChild(messageDiv);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching messages:', error);
+                messagesContainer.innerHTML = 'Error loading messages.';
+            });
+    </script>
+</body>
+</html>
