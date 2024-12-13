@@ -1,5 +1,7 @@
 # Chamboard Resources
 
+## everything in this directory is currently in progress and should be considered completely broken.
+
 This folder contains the scripts and resources required to set up and operate the Chamboard project on a Raspberry Pi Zero 2 W.
 
 ## Overview
