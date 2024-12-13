@@ -1,0 +1,46 @@
+<script>
+    const messagesContainer = document.getElementById('messages');
+
+    // Replace with your WordPress REST API URL
+    const apiUrl = 'https://www.snand.org/wp-json/wp/v2/comments?post=3131';
+
+    // Maximum number of comments to display
+    const maxComments = 4; // You can update this value
+
+    fetch(apiUrl)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Clear the loading message
+        messagesContainer.innerHTML = '';
+
+        // Slice the array to the desired number of comments
+        data.slice(0, maxComments).forEach(comment => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+
+            // Extract author, comment, and date
+            const author = comment.author_name; // Name of the author
+            const content = comment.content.rendered; // The comment itself
+            const date = new Date(comment.date).toLocaleString(); // Format the date
+
+            // Build the HTML content
+            messageDiv.innerHTML = `
+                <p><strong>Author:</strong> ${author}</p>
+                <p>${content}</p>
+                <p><small><em>${date}</em></small></p>
+            `;
+
+            // Append the message to the container
+            messagesContainer.appendChild(messageDiv);
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching messages:', error);
+        messagesContainer.innerHTML = 'Error loading messages.';
+    });
+</script>
