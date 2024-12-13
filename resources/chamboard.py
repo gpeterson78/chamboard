@@ -42,7 +42,7 @@ def display_image(image_path):
 
     # Open the image and resize it to fit the display
     image = Image.open(image_path)
-    image = image.resize((epd.height, epd.width), Image.ANTIALIAS).convert("1")  # Swap width and height
+    image = image.resize((epd.height, epd.width), Image.Resampling.NEAREST).convert("1")  # Swap width and height
     image = image.rotate(90, expand=True)  # Rotate 90 degrees clockwise for portrait mode
 
     # Display the image on the e-paper
