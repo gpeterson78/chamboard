@@ -1,4 +1,4 @@
-![chamboard logo](/docs/chamboard.jpeg)
+![chamboard logo](./docs/chamboard.jpeg)
 
 elderly parent epaper display reminder - work in progress
 

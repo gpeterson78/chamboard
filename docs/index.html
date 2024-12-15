@@ -12,6 +12,7 @@
             margin: 0 auto;
             padding: 10px; /* Smaller padding for compactness */
             background-color: #fff; /* High contrast for readability */
+            color: #000; /* Force all text to black */
         }
 
         /* Header Styles */
@@ -41,25 +42,25 @@
         .message {
             margin: 5px 0; /* Reduced spacing between messages */
             padding: 5px; /* Reduced padding for compact layout */
-            border-bottom: 1px solid #aaa; /* Lighter border for separation */
         }
 
-        .message:last-child {
-            border-bottom: none; /* Remove border from the last message */
-        }
-
-        /* Author and Date Styling */
         .message p {
-            margin: 2px 0; /* Minimal spacing for compactness */
+            margin: 0; /* Remove extra spacing */
         }
 
-        .message strong {
-            font-weight: bold; /* Emphasize author */
+        .message-header {
+            display: flex;
+            justify-content: space-between; /* Align author and date on opposite ends */
+            font-weight: bold; /* Emphasize the header */
         }
 
-        .message small {
-            font-size: 0.9em; /* Slightly smaller for less important text */
-            color: #555; /* Dim the date text for visual hierarchy */
+        .message-content {
+            margin: 5px 0; /* Space between header and content */
+        }
+
+        .divider {
+            border-top: 1px solid #000; /* Black divider line */
+            margin: 5px 0; /* Space around divider */
         }
     </style>
 </head>
@@ -75,6 +76,9 @@
         // Replace with your WordPress REST API URL
         const apiUrl = 'https://www.snand.org/wp-json/wp/v2/comments?post=3131';
 
+        // Maximum number of comments to display
+        const maxComments = 4;
+
         fetch(apiUrl)
         .then(response => {
             if (!response.ok) {
@@ -86,8 +90,8 @@
             // Clear the loading message
             messagesContainer.innerHTML = '';
 
-            // Loop through and display each comment
-            data.forEach(comment => {
+            // Slice the array to the desired number of comments
+            data.slice(0, maxComments).forEach(comment => {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = 'message';
 
@@ -98,9 +102,12 @@
 
                 // Build the HTML content
                 messageDiv.innerHTML = `
-                    <p><strong>Author:</strong> ${author}</p>
-                    <p>${content}</p>
-                    <p><small><em>${date}</em></small></p>
+                    <div class="message-header">
+                        <span>Author: ${author}</span>
+                        <span>${date}</span>
+                    </div>
+                    <div class="message-content">${content}</div>
+                    <div class="divider"></div>
                 `;
 
                 // Append the message to the container
