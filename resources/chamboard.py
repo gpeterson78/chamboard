@@ -1,38 +1,28 @@
-from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
+from playwright.sync_api import sync_playwright
 from PIL import Image
 from waveshare_epd import epd7in5_V2  # Adjust for your specific display model
 
-def capture_screenshot(url, screenshot_path="screenshot.png"):
-    # Set up headless Firefox
-    options = Options()
-    options.add_argument("-headless")
+def capture_screenshot(url, screenshot_path="screenshot.png", width=480, height=800):
+    with sync_playwright() as p:
+        # Launch WebKit in headless mode
+        browser = p.webkit.launch(headless=True)
+        page = browser.new_page()
 
-    # Initialize the WebDriver
-    driver = webdriver.Firefox(options=options)
-    try:
-        # Set the browser window size to 480x800
-        driver.set_window_size(480, 800)
+        # Set the viewport size
+        page.set_viewport_size({"width": width, "height": height})
 
-        # Load the URL
-        driver.get(url)
+        # Navigate to the URL
+        page.goto(url)
 
-        # Wait for the page to indicate it's fully loaded
-        WebDriverWait(driver, 15).until(
-            lambda d: d.execute_script("return document.readyState") == "complete"
-        )
+        # Wait for the page to fully load
+        page.wait_for_load_state("networkidle")
 
-        # Optionally wait a bit longer for dynamic content to load (if needed)
-        driver.implicitly_wait(3)
-
-        # Capture the screenshot
-        driver.save_screenshot(screenshot_path)
+        # Take the screenshot
+        page.screenshot(path=screenshot_path)
         print(f"Screenshot saved to {screenshot_path}")
 
-    finally:
-        # Ensure the browser is properly closed
-        driver.quit()
+        # Close the browser
+        browser.close()
 
 def display_image(image_path):
     # Initialize the e-paper display
@@ -42,7 +32,7 @@ def display_image(image_path):
 
     # Open the image and resize it to fit the display
     image = Image.open(image_path)
-    image = image.resize((epd.height, epd.width), Image.Resampling.NEAREST).convert("1")  # Swap width and height
+    image = image.resize((epd.height, epd.width), Image.Resampling.LANCZOS).convert("1")  # Swap width and height
     image = image.rotate(90, expand=True)  # Rotate 90 degrees clockwise for portrait mode
 
     # Display the image on the e-paper
@@ -52,10 +42,8 @@ def display_image(image_path):
     epd.sleep()
 
 if __name__ == "__main__":
-    # URL to capture
-    url = "https://www.gradyp.com/chamboard"  # Replace with your desired URL
-
-    # Path to save the screenshot
+    # Define the URL to capture and the screenshot path
+    url = "https://www.gradyp.com/chamboard"
     screenshot_path = "screenshot.png"
 
     # Step 1: Capture the screenshot
