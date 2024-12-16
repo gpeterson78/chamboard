@@ -176,7 +176,6 @@ next steps:
 
 to cleanup this message...
 sudo rm -f $MOTD_INSTRUCTIONS
-sudo mv ~/setup.sh ~/chamboard/setup.sh
 ==================================================================
 EOF
     sudo chmod +x $MOTD_INSTRUCTIONS
