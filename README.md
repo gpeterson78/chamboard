@@ -31,11 +31,11 @@ The project is built with Python and tested on a **Raspberry Pi Zero 2 W**.
 ## Parts List
 To build Chamboard, you will need the following components (these are **NOT** affiliated links, just examples):
 
-| **Item**                              | **Description**                                      | **Link**                               |
-|---------------------------------------|----------------------------------------------------|---------------------------------------|
-| Raspberry Pi Zero 2 W                 | Compact single-board computer                      | [Buy on PiShop](https://www.microcenter.com/product/643085/raspberry-pi-zero-2-w)  |
-| Waveshare 7.5" E-Paper Display (V2)   | 7.5-inch e-ink display for low-power visuals       | [Buy on Waveshare](https://www.waveshare.com/7.5inch-e-Paper-HAT.htm) |
-| Optional: Case / 3D Printed Frame     | Custom 3D printed frame to house the display       | See [3D Printed Frame](#3d-printed-frame) |
+| **Item**                                                                                  | **Description**                                                |
+| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| [Raspberry Pi Zero 2 W](https://www.microcenter.com/product/643085/raspberry-pi-zero-2-w) | Compact single-board computer                                  |
+| [Waveshare 7.5" E-Paper Display (V2)](https://www.waveshare.com/7.5inch-e-Paper-HAT.htm)  | 7.5-inch e-ink display for low-power visuals                   |
+| [3D Printed Frame](https://makerworld.com/en/models/787533)                               | 3D printed frame to house the display - the one I used anyway. |
 
 ---
 
@@ -67,8 +67,7 @@ Access it via:
 http://<raspberry-pi-ip>:8080
 ```
 
-This is a future feature and currently serves no purpose.  On the todo list is to update the setup script to point the screenshot at the internal website, and an input for a wordpress thread or custom URL to use.  This will also eventually have a web based configuration, a groin-grabbingly simple one, but functional enough so that it can be configured from a phone.
-
+This feature is planned for future functionality and currently serves as a placeholder.[^1]
 
 ### 4. Reboot the Device
 Once setup is complete, the device will reboot and the Chamboard script will begin capturing content and displaying it on the e-paper screen.
@@ -96,18 +95,15 @@ Once setup is complete, the device will reboot and the Chamboard script will beg
 5. Recommended: setup a remote access for management via something like tailscale.
 
 ---
-
-## 3D Printed Frame
-To make Chamboard look great in your home, you can use a custom 3D-printed frame. You can find the STL file here:
-
-[3D Printed Frame on Thingiverse](https://example.com)
-
----
-
 ## Future Plans
-- Add a web-based configuration tool for easier setup.
+
+[^1]: future plans and additions:
+
 - Allow message input directly from the local web server.
+- Add input options for a WordPress thread/custom URL to pull content from.
+- Implement a web-based configuration interface that is simple, functional, and accessible via a phone.
 - Instructions/setup options for tailscale or other remote access.
+
 ---
 
 ### Contributions
