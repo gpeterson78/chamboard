@@ -266,6 +266,10 @@ next steps:
 2. Activate the virtual environment: source $VENV_DIR/bin/activate
 3. Run your Playwright script inside the virtual environment.
 
+Recommended: Enable remote access via Tailscale
+- For simple and secure remote management, consider setting up Tailscale.
+- See README.md for more info.
+
 to cleanup this message...
 sudo rm -f $MOTD_INSTRUCTIONS
 ==================================================================

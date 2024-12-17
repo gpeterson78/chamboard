@@ -74,6 +74,27 @@ Once setup is complete, the device will reboot and the Chamboard script will beg
 
 ---
 
+### 5. Remote Access Options
+
+For managing Chamboard remotely, it is recommended to set up a remote access solution like **Tailscale** or an alternative VPN of your choice. This is especially useful if your device is located behind a NAT (e.g., at home) and you want secure access without port forwarding.
+
+### Why Use Remote Access?
+
+- **Manage Chamboard Anywhere**: Access your Raspberry Pi from your phone, laptop, or another device, even if it's on a different network.
+- **Simplify Configuration**: Securely SSH into the Pi to tweak scripts, update content, or troubleshoot issues.
+- **Optional Backup**: If you serve local web content as fallback (e.g., on port 8080), remote access allows you to view it from any device.
+
+---
+
+### Option 1: Tailscale VPN
+
+**Tailscale** is a simple, free, and secure VPN that uses WireGuard under the hood and what Chamboard recommends. It creates a private network between your devices, so you can access your Raspberry Pi as if it were on the same local network.
+
+#### Suggested Use Cases:
+- SSH into your Pi:
+   ```bash
+   ssh pi@<tailscale-ip>
+
 ## How It Works
 1. **Screenshot Capture**: A Python script uses Playwright (WebKit) to capture screenshots of a specified URL.
 2. **Display on E-Paper**: The screenshot is resized and displayed on the Waveshare 7.5" e-paper display.
