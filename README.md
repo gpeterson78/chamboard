@@ -95,16 +95,6 @@ Once setup is complete, the device will reboot and the Chamboard script will beg
 5. Recommended: setup a remote access for management via something like tailscale.
 
 ---
-## Future Plans
-
-[^1]: future plans and additions:
-
-- Allow message input directly from the local web server.
-- Add input options for a WordPress thread/custom URL to pull content from.
-- Implement a web-based configuration interface that is simple, functional, and accessible via a phone.
-- Instructions/setup options for tailscale or other remote access.
-
----
 
 ### Contributions
 Feel free to contribute to the project by submitting issues, pull requests, or feature suggestions.
@@ -117,3 +107,9 @@ This project is licensed under the MIT License.
 ---
 
 Thank you for using Chamboard! 😊
+
+[^1]: future plans and additions:
+- Allow message input directly from the local web server.
+- Add input options for a WordPress thread/custom URL to pull content from.
+- Implement a web-based configuration interface that is simple, functional, and accessible via a phone.
+- Instructions/setup options for tailscale or other remote access.
