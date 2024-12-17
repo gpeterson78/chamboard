@@ -12,7 +12,7 @@ MOTD_INSTRUCTIONS="/etc/motd.d/setup-instructions"
 WEB_SERVICE_FILE="/etc/systemd/system/chamboard_webserver.service"
 PYTHON_PACKAGES="python3 python3-pip python3-full python3-venv"
 CRON_INTERVAL="*/30 * * * *"  # Every 30 minutes
-SCRIPT_PATH="$PROJECT_DIR/chamboard.py"  # Full path to chamboard.py
+SCRIPT_PATH="$PROJECT_DIR/resources/chamboard.py"  # Full path to chamboard.py
 CURRENT_LOG="$LOG_DIR/chamboard.log"  # Current log file
 ARCHIVE_RETENTION=3  # Number of archived logs to retain
 
@@ -32,7 +32,7 @@ else
 fi
 
 # Ensure the script exists
-if [ ! -f "$PROJECT_DIR/resources" ]; then
+if [ ! -f "$SCRIPT_PATH" ]; then
     echo "ERROR: chamboard.py not found, please ensure you have downloaded or cloned the full repo: https://github.com/gpeterson78/chamboard."
     exit 1
 fi
