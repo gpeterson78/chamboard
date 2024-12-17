@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# script to setup the cronjobs needed for automatic refresh
+# for testing and development purposes
+
 # Exit on any error
 set -e
 

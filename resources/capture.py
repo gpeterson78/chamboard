@@ -1,3 +1,6 @@
+# python script to capture a screenshot using playwright
+# for testing and development purposes
+
 from playwright.sync_api import sync_playwright
 
 def capture_screenshot(url, screenshot_path="screenshot.png", width=480, height=800):
