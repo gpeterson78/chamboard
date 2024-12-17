@@ -217,41 +217,64 @@ fi
 # Create log directory if it doesn't exist
 mkdir -p "$LOG_DIR"
 
-# Add the cron job
+# # Add the cron job
+# echo "Setting up cron job to run chamboard.py every 30 minutes..."
+# (crontab -l 2>/dev/null | grep -v "$SCRIPT_PATH"; echo "$CRON_INTERVAL $HOME/chamboard/venv/bin/python $SCRIPT_PATH >> $CURRENT_LOG 2>&1") | crontab -
+
+# # Add a cron job for log rotation
+# echo "Setting up log rotation..."
+# LOG_ROTATION_SCRIPT="$LOG_DIR/rotate_logs.sh"
+# cat <<EOF > "$LOG_ROTATION_SCRIPT"
+# #!/bin/bash
+
+# # Rotate logs if chamboard.log is older than 30 days
+# if [ -f "$CURRENT_LOG" ]; then
+#     LOG_AGE=\$(find "$CURRENT_LOG" -type f -mtime +30)
+#     if [ "\$LOG_AGE" ]; then
+#         ARCHIVE_NAME="\$LOG_DIR/chamboard_\$(date +'%Y-%m-%d').log"
+#         mv "$CURRENT_LOG" "\$ARCHIVE_NAME"
+#         echo "Archived log to \$ARCHIVE_NAME"
+#     fi
+# fi
+
+# # Cleanup old archived logs
+# ARCHIVED_LOGS=\$(ls -t "$LOG_DIR"/chamboard_*.log 2>/dev/null | tail -n +\$((ARCHIVE_RETENTION + 1)))
+# if [ "\$ARCHIVED_LOGS" ]; then
+#     echo "\$ARCHIVED_LOGS" | xargs rm -f
+#     echo "Cleaned up old archived logs."
+# fi
+# EOF
+
+# chmod +x "$LOG_ROTATION_SCRIPT"
+
+# # Schedule the log rotation script to run daily at midnight
+# (crontab -l 2>/dev/null | grep -v "$LOG_ROTATION_SCRIPT"; echo "0 0 * * * $LOG_ROTATION_SCRIPT") | crontab -
+
+# echo "Cron jobs added successfully. You can verify them with 'crontab -l'."
+# echo "Logs are located in $LOG_DIR."
+
+# Add the cron job safely
 echo "Setting up cron job to run chamboard.py every 30 minutes..."
-(crontab -l 2>/dev/null | grep -v "$SCRIPT_PATH"; echo "$CRON_INTERVAL $HOME/chamboard/venv/bin/python $SCRIPT_PATH >> $CURRENT_LOG 2>&1") | crontab -
 
-# Add a cron job for log rotation
-echo "Setting up log rotation..."
-LOG_ROTATION_SCRIPT="$LOG_DIR/rotate_logs.sh"
-cat <<EOF > "$LOG_ROTATION_SCRIPT"
-#!/bin/bash
+# Temporary file for the new crontab
+TMP_CRON=$(mktemp)
 
-# Rotate logs if chamboard.log is older than 30 days
-if [ -f "$CURRENT_LOG" ]; then
-    LOG_AGE=\$(find "$CURRENT_LOG" -type f -mtime +30)
-    if [ "\$LOG_AGE" ]; then
-        ARCHIVE_NAME="\$LOG_DIR/chamboard_\$(date +'%Y-%m-%d').log"
-        mv "$CURRENT_LOG" "\$ARCHIVE_NAME"
-        echo "Archived log to \$ARCHIVE_NAME"
-    fi
-fi
+# Safely initialize or overwrite the crontab
+crontab -l 2>/dev/null > "$TMP_CRON" || echo "# New crontab initialized" > "$TMP_CRON"
 
-# Cleanup old archived logs
-ARCHIVED_LOGS=\$(ls -t "$LOG_DIR"/chamboard_*.log 2>/dev/null | tail -n +\$((ARCHIVE_RETENTION + 1)))
-if [ "\$ARCHIVED_LOGS" ]; then
-    echo "\$ARCHIVED_LOGS" | xargs rm -f
-    echo "Cleaned up old archived logs."
-fi
-EOF
+# Remove any existing chamboard.py cron job and append the new one
+grep -vF "$SCRIPT_PATH" "$TMP_CRON" > "${TMP_CRON}_new"
+echo "$CRON_INTERVAL $HOME/chamboard/venv/bin/python $SCRIPT_PATH >> $CURRENT_LOG 2>&1" >> "${TMP_CRON}_new"
 
-chmod +x "$LOG_ROTATION_SCRIPT"
+# Install the new crontab
+crontab "${TMP_CRON}_new" && echo "Cron job added successfully!"
 
-# Schedule the log rotation script to run daily at midnight
-(crontab -l 2>/dev/null | grep -v "$LOG_ROTATION_SCRIPT"; echo "0 0 * * * $LOG_ROTATION_SCRIPT") | crontab -
+# Cleanup
+rm -f "$TMP_CRON" "${TMP_CRON}_new"
 
-echo "Cron jobs added successfully. You can verify them with 'crontab -l'."
-echo "Logs are located in $LOG_DIR."
+# Verify the new crontab
+echo "Final crontab:"
+crontab -l
 
 # Create a one-time login message
 if [ ! -f "$MOTD_INSTRUCTIONS" ]; then
