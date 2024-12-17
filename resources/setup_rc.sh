@@ -32,8 +32,8 @@ else
 fi
 
 # Ensure the script exists
-if [ ! -f "$SCRIPT_PATH" ]; then
-    echo "ERROR: chamboard.py not found at $SCRIPT_PATH"
+if [ ! -f "$PROJECT_DIR/resources" ]; then
+    echo "ERROR: chamboard.py not found, please ensure you have downloaded or cloned the full repo: https://github.com/gpeterson78/chamboard."
     exit 1
 fi
 
