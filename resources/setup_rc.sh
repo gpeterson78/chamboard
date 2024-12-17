@@ -185,7 +185,7 @@ Description=Chamboard Local Webserver
 After=network.target
 
 [Service]
-ExecStart=python3 -m http.server 80 --directory $DOCS_DIR
+ExecStart=python3 -m http.server 8080 --directory $DOCS_DIR
 WorkingDirectory=$DOCS_DIR
 Restart=always
 User=$USER
