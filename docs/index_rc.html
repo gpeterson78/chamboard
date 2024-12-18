@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chamboard</title>
+    <style>
+        /* General Reset */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 480px; /* Adjust for portrait mode */
+            margin: 0 auto;
+            padding: 10px; /* Smaller padding for compactness */
+            background-color: #fff; /* High contrast for readability */
+            color: #000; /* Force all text to black */
+        }
+
+        /* Header Styles */
+        h1 {
+            font-size: 1.5em; /* Larger title font */
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header-image {
+            max-height: 85px;
+            height: auto;
+            width: auto;
+        }
+
+        /* Message Container */
+        #messages {
+            font-size: 1.2em; /* Readable font size for older eyes */
+            line-height: 1.4; /* Adjust line spacing for compactness */
+        }
+
+        .message {
+            margin: 5px 0; /* Reduced spacing between messages */
+            padding: 5px; /* Reduced padding for compact layout */
+        }
+
+        .message p {
+            margin: 0; /* Remove extra spacing */
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between; /* Align author and date on opposite ends */
+            font-weight: bold; /* Emphasize the header */
+        }
+
+        .message-content {
+            margin: 5px 0; /* Space between header and content */
+        }
+
+        .divider {
+            border-top: 1px solid #000; /* Black divider line */
+            margin: 5px 0; /* Space around divider */
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="chamboard.jpeg" alt="chamboard" class="header-image">
+    </div>
+    <div id="messages">Loading...</div>
+
+    <script>
+        const messagesContainer = document.getElementById('messages');
+        const maxComments = 6; // Maximum number of comments to display
+
+        // Fetch configuration from the backend
+        (async () => {
+            try {
+                // Fetch configuration
+                const configResponse = await fetch('/config');
+                if (!configResponse.ok) {
+                    throw new Error(`HTTP error! Status: ${configResponse.status}`);
+                }
+                const config = await configResponse.json();
+
+                // Determine the API URL based on the configuration
+                const apiUrl = config.use_backend
+                    ? `${config.backend_url}/comments`
+                    : config.scrape_url;
+
+                // Fetch comments from the chosen API
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                // Clear the loading message
+                messagesContainer.innerHTML = '';
+
+                // Slice the array to the desired number of comments
+                data.slice(0, maxComments).forEach(comment => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message';
+
+                    // Extract author, comment, and date
+                    const author = comment.author_name; // Name of the author
+                    const content = comment.content.rendered; // The comment itself
+                    const date = new Date(comment.date).toLocaleString(); // Format the date
+
+                    // Build the HTML content
+                    messageDiv.innerHTML = `
+                        <div class="message-header">
+                            <span>Author: ${author}</span>
+                            <span>${date}</span>
+                        </div>
+                        <div class="message-content">${content}</div>
+                        <div class="divider"></div>
+                    `;
+
+                    // Append the message to the container
+                    messagesContainer.appendChild(messageDiv);
+                });
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+                messagesContainer.innerHTML = 'Error loading messages.';
+            }
+        })();
+        // const messagesContainer = document.getElementById('messages');
+
+        // // Replace with your WordPress REST API URL
+        // const apiUrl = 'https://www.snand.org/wp-json/wp/v2/comments?post=3131';
+
+        // // Maximum number of comments to display
+        // const maxComments = 6;
+
+        // fetch(apiUrl)
+        // .then(response => {
+        //     if (!response.ok) {
+        //         throw new Error(`HTTP error! Status: ${response.status}`);
+        //     }
+        //     return response.json();
+        // })
+        // .then(data => {
+        //     // Clear the loading message
+        //     messagesContainer.innerHTML = '';
+
+        //     // Slice the array to the desired number of comments
+        //     data.slice(0, maxComments).forEach(comment => {
+        //         const messageDiv = document.createElement('div');
+        //         messageDiv.className = 'message';
+
+        //         // Extract author, comment, and date
+        //         const author = comment.author_name; // Name of the author
+        //         const content = comment.content.rendered; // The comment itself
+        //         const date = new Date(comment.date).toLocaleString(); // Format the date
+
+        //         // Build the HTML content
+        //         messageDiv.innerHTML = `
+        //             <div class="message-header">
+        //                 <span>Author: ${author}</span>
+        //                 <span>${date}</span>
+        //             </div>
+        //             <div class="message-content">${content}</div>
+        //             <div class="divider"></div>
+        //         `;
+
+        //         // Append the message to the container
+        //         messagesContainer.appendChild(messageDiv);
+        //     });
+        // })
+        // .catch(error => {
+        //     console.error('Error fetching messages:', error);
+        //     messagesContainer.innerHTML = 'Error loading messages.';
+        // });
+    </script>
+</body>
+</html>
