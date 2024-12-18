@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chamboard Configuration</title>
+</head>
+<body>
+    <h1>Chamboard Configuration</h1>
+
+    <h2>Configuration</h2>
+    <form id="configForm">
+        <label>Data Source URL:</label>
+        <input type="text" id="url"><br>
+        <label>Use Local JSON:</label>
+        <input type="checkbox" id="useLocal"><br>
+        <button type="submit">Save</button>
+    </form>
+
+    <h2>Add a Comment</h2>
+    <form id="commentForm">
+        <input type="text" id="author" placeholder="Your Name"><br>
+        <textarea id="text" placeholder="Your Comment"></textarea><br>
+        <button type="submit">Post</button>
+    </form>
+
+    <script>
+        // Fetch configuration
+        fetch("/config").then(res => res.json()).then(config => {
+            document.getElementById("url").value = config.DATA_SOURCE_URL;
+            document.getElementById("useLocal").checked = config.USE_LOCAL_JSON === "True";
+        });
+
+        // Update configuration
+        document.getElementById("configForm").addEventListener("submit", e => {
+            e.preventDefault();
+            fetch("/update_config", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    url: document.getElementById("url").value,
+                    useLocal: document.getElementById("useLocal").checked
+                })
+            }).then(() => alert("Configuration updated!"));
+        });
+
+        // Add a new comment
+        document.getElementById("commentForm").addEventListener("submit", e => {
+            e.preventDefault();
+            fetch("/add_comment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    author: document.getElementById("author").value,
+                    text: document.getElementById("text").value,
+                    timestamp: new Date().toISOString()
+                })
+            }).then(() => alert("Comment added!"));
+        });
+    </script>
+</body>
+</html>

@@ -24,7 +24,7 @@ if ! ls /dev/spidev0.* > /dev/null 2>&1; then
     echo "1. Run 'sudo raspi-config'."
     echo "2. Navigate to 'Interface Options'."
     echo "3. Select 'SPI' and enable it."
-    echo "4. Reboot the Raspberry Pi."
+    echo "4. Reboot the Raspberry Pi (optional but recommended)."
     echo "Exiting setup."
     exit 1
 else
@@ -174,6 +174,46 @@ rm -rf /tmp/e-Paper.zip /tmp/e-Paper
 # Deactivate virtual environment
 deactivate
 
+# # Webserver Setup
+# if systemctl is-active --quiet chamboard_webserver.service; then
+#     echo "The Chamboard webserver is already running."
+#     read -p "Do you want to keep it running? (y/n): " KEEP_WEBSERVER
+#     if [[ "$KEEP_WEBSERVER" =~ ^[Nn]$ ]]; then
+#         echo "Stopping and disabling the webserver..."
+#         sudo systemctl stop chamboard_webserver.service
+#         sudo systemctl disable chamboard_webserver.service
+#     else
+#         echo "Webserver will remain running."
+#     fi
+# else
+#     read -p "Do you want to enable the local webserver to serve static content? (y/n): " ENABLE_WEBSERVER
+#     if [[ "$ENABLE_WEBSERVER" =~ ^[Yy]$ ]]; then
+#         echo "Creating systemd service for webserver..."
+#         sudo bash -c "cat > $WEB_SERVICE_FILE" <<EOF
+# [Unit]
+# Description=Chamboard Local Webserver
+# After=network.target
+
+# [Service]
+# ExecStart=python3 -m http.server 8080 --directory $DOCS_DIR
+# WorkingDirectory=$DOCS_DIR
+# Restart=always
+# User=$USER
+# Group=$USER
+
+# [Install]
+# WantedBy=multi-user.target
+# EOF
+
+#         sudo systemctl daemon-reload
+#         sudo systemctl enable chamboard_webserver.service
+#         sudo systemctl start chamboard_webserver.service
+#         echo "Webserver enabled at http://localhost:80"
+#     else
+#         echo "Webserver setup skipped."
+#     fi
+# fi
+
 # Webserver Setup
 if systemctl is-active --quiet chamboard_webserver.service; then
     echo "The Chamboard webserver is already running."
@@ -186,16 +226,16 @@ if systemctl is-active --quiet chamboard_webserver.service; then
         echo "Webserver will remain running."
     fi
 else
-    read -p "Do you want to enable the local webserver to serve static content? (y/n): " ENABLE_WEBSERVER
+    read -p "Do you want to enable the local webserver to serve static content and APIs? (y/n): " ENABLE_WEBSERVER
     if [[ "$ENABLE_WEBSERVER" =~ ^[Yy]$ ]]; then
         echo "Creating systemd service for webserver..."
         sudo bash -c "cat > $WEB_SERVICE_FILE" <<EOF
 [Unit]
-Description=Chamboard Local Webserver
+Description=Chamboard Local Webserver with API
 After=network.target
 
 [Service]
-ExecStart=python3 -m http.server 8080 --directory $DOCS_DIR
+ExecStart=python3 $PROJECT_DIR/resources/chamboard_webserver.py
 WorkingDirectory=$DOCS_DIR
 Restart=always
 User=$USER
@@ -208,7 +248,7 @@ EOF
         sudo systemctl daemon-reload
         sudo systemctl enable chamboard_webserver.service
         sudo systemctl start chamboard_webserver.service
-        echo "Webserver enabled at http://localhost:80"
+        echo "Webserver enabled at http://localhost:8080"
     else
         echo "Webserver setup skipped."
     fi

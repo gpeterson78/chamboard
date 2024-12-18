@@ -11,7 +11,7 @@ if ! ls /dev/spidev0.* > /dev/null 2>&1; then
     echo "1. Run 'sudo raspi-config'."
     echo "2. Navigate to 'Interface Options'."
     echo "3. Select 'SPI' and enable it."
-    echo "4. Reboot the Raspberry Pi."
+    echo "4. Reboot the Raspberry Pi (optional but recommended)."
     echo "Exiting setup."
     exit 1
 else
