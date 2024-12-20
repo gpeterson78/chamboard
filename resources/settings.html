@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chamboard Settings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: #fff;
+            color: #000;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .small-button {
+            width: 33%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        .tiny-button {
+            width: auto;
+            padding: 3px 5px;
+            margin-left: 10px;
+        }
+        #saveFeedback {
+            display: inline-block;
+            margin-left: 10px;
+            color: green;
+        }
+        #logOutput {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #0f0;
+            background-color: #000;
+            border: 1px solid #333;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: scroll;
+            font-family: monospace;
+            position: relative;
+        }
+        #logTitle {
+            font-size: 0.8em;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        #screenshot {
+            display: none;
+            margin-top: 20px;
+            width: 100%;
+            border: 1px solid #333;
+        }
+        .disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chamboard Settings</h1>
+    <form id="settingsForm">
+        <label for="scrapeUrl">URL to Scrape:</label>
+        <input type="text" id="scrapeUrl" placeholder="https://www.example.com/chamboard">
+
+        <label>
+            <input type="checkbox" id="useInternalServer">
+            Use Internal Webserver
+        </label>
+
+        <label>
+            <input type="checkbox" id="useInternalMessages">
+            Use Internal Message Server
+        </label>
+
+        <button type="submit" class="small-button">Save Settings</button>
+        <span id="saveFeedback"></span>
+
+        <label for="author">Author:</label>
+        <input type="text" id="author" placeholder="Your Name">
+        <label for="message">Message:</label>
+        <textarea id="message" placeholder="Your Message"></textarea>
+        <button id="postMessage" type="button" class="small-button">Post Message</button>
+        <button id="deleteMessage" type="button" class="tiny-button">Delete Last</button>
+    </form>
+    <div id="feedback"></div>
+    <div id="logTitle">Message Log:</div>
+    <div id="logOutput">Loading comments...</div>
+    <img id="screenshot" src="/resources/screenshot.png" alt="Screenshot Output">
+
+    <script>
+        const feedback = document.getElementById('feedback');
+        const saveFeedback = document.getElementById('saveFeedback');
+        const logOutput = document.getElementById('logOutput');
+        const logTitle = document.getElementById('logTitle');
+        const screenshot = document.getElementById('screenshot');
+        const postMessageButton = document.getElementById('postMessage');
+        const deleteMessageButton = document.getElementById('deleteMessage');
+        const useInternalMessages = document.getElementById('useInternalMessages');
+        const scrapeUrlInput = document.getElementById('scrapeUrl');
+        const useInternalServer = document.getElementById('useInternalServer');
+
+        // Sync "Use Internal Webserver" with "Use Internal Message Server"
+        useInternalMessages.addEventListener('change', () => {
+            if (useInternalMessages.checked) {
+                useInternalServer.checked = true;
+                useInternalServer.classList.add('disabled');
+            } else {
+                useInternalServer.classList.remove('disabled');
+            }
+        });
+
+        // Disable checkbox interactions when "Use Internal Webserver" is disabled
+        useInternalServer.addEventListener('change', () => {
+            if (!useInternalServer.checked) {
+                useInternalMessages.checked = false;
+            }
+        });
+
+        // Enforce required fields only for Post Message
+        postMessageButton.addEventListener('click', async () => {
+            const author = document.getElementById('author').value;
+            const message = document.getElementById('message').value;
+
+            if (!author || !message) {
+                feedback.innerText = 'Both Author and Message are required.';
+                return;
+            }
+
+            try {
+                const response = await fetch('/add_comment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        author,
+                        text: message,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    feedback.innerText = result.message || 'Message posted successfully!';
+                    loadComments();
+                } else {
+                    throw new Error(result.message || 'Unknown error occurred.');
+                }
+            } catch (error) {
+                feedback.innerText = 'Error posting message: ' + error.message;
+            }
+        });
+
+        // Save settings to the backend
+        document.getElementById('settingsForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const scrapeUrl = scrapeUrlInput.value;
+
+            const config = {
+                use_backend: useInternalServer.checked,
+                scrape_url: scrapeUrl,
+                use_internal_messages: useInternalMessages.checked
+            };
+
+            try {
+                const response = await fetch('/update_config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                const result = await response.json();
+                saveFeedback.innerText = result.message || 'Settings saved successfully!';
+
+                if (/wp-json\/wp\/v2\/comments\?/.test(scrapeUrl)) {
+                    // WordPress-specific logic
+                    screenshot.style.display = 'none';
+                    logOutput.style.display = 'block';
+                    loadComments();
+                } else {
+                    // Arbitrary URL logic
+                    logOutput.style.display = 'none';
+                    screenshot.style.display = 'block';
+                }
+            } catch (error) {
+                saveFeedback.innerText = 'Error saving settings: ' + error.message;
+            }
+        });
+
+        // Delete the previous message
+        deleteMessageButton.addEventListener('click', async () => {
+            if (confirm('Are you sure you want to delete the last message?')) {
+                try {
+                    const response = await fetch('/delete_last_comment', {
+                        method: 'DELETE'
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        feedback.innerText = result.message || 'Last message deleted successfully!';
+                        loadComments();
+                    } else {
+                        throw new Error(result.message || 'Unknown error occurred.');
+                    }
+                } catch (error) {
+                    feedback.innerText = 'Error deleting message: ' + error.message;
+                }
+            }
+        });
+
+        // Load comments for the log output
+        async function loadComments() {
+            try {
+                const response = await fetch('/comments');
+                const data = await response.json();
+
+                if (Array.isArray(data)) {
+                    logOutput.innerHTML = data.reverse().map(comment => `
+                        <div>
+                            <strong>${comment.author_name || 'Anonymous'}:</strong>
+                            <p>${comment.content?.rendered || 'No content'}</p>
+                            <small>${new Date(comment.date).toLocaleString()}</small>
+                        </div>
+                        <hr>
+                    `).join('');
+                } else {
+                    logOutput.innerHTML = '<p>No comments available.</p>';
+                }
+            } catch (error) {
+                logOutput.innerText = 'Error loading comments: ' + error.message;
+            }
+        }
+
+        // Load initial configuration and comments
+        (async () => {
+            try {
+                const response = await fetch('/config');
+                const config = await response.json();
+
+                useInternalServer.checked = config.use_backend || false;
+                scrapeUrlInput.value = config.scrape_url || '';
+                useInternalMessages.checked = config.use_internal_messages || false;
+                useInternalServer.classList.toggle('disabled', useInternalMessages.checked);
+
+                if (/wp-json\/wp\/v2\/comments\?/.test(config.scrape_url)) {
+                    loadComments();
+                } else {
+                    logOutput.style.display = 'none';
+                    screenshot.style.display = 'block';
+                }
+            } catch (error) {
+                feedback.innerText = 'Error loading settings: ' + error.message;
+            }
+        })();
+    </script>
+</body>
+</html>

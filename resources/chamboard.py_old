@@ -1,16 +1,6 @@
-import os
-import json
 from playwright.sync_api import sync_playwright
 from PIL import Image
 from waveshare_epd import epd7in5_V2  # Adjust for your specific display model
-
-def load_config(config_path="config.json"):
-    try:
-        with open(config_path, 'r') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        print(f"Config file not found at {config_path}. Using default settings.")
-        return {}
 
 def capture_screenshot(url, screenshot_path="screenshot.png", width=480, height=800):
     with sync_playwright() as p:
@@ -52,18 +42,9 @@ def display_image(image_path):
     epd.sleep()
 
 if __name__ == "__main__":
-    # Load configuration
-    config_path = os.path.expanduser("~/chamboard/resources/config.json")
-    config = load_config(config_path)
-
-    # Determine the URL based on the configuration
-    use_backend = config.get("use_backend", False)
-    if use_backend:
-        url = "http://localhost:8080"
-    else:
-        url = "https://www.gradyp.com/chamboard"
-
-    screenshot_path = "~/chamboard/resources/screenshot.png"
+    # Define the URL to capture and the screenshot path
+    url = "https://www.gradyp.com/chamboard"
+    screenshot_path = "screenshot.png"
 
     # Step 1: Capture the screenshot
     capture_screenshot(url, screenshot_path)
