@@ -3,19 +3,6 @@
 # Exit on any error
 set -e
 
-# Variables
-PROJECT_DIR="$HOME/chamboard"
-VENV_DIR="$PROJECT_DIR/venv"
-DOCS_DIR="$PROJECT_DIR/docs"
-LOG_DIR="$PROJECT_DIR/logs"
-MOTD_INSTRUCTIONS="/etc/motd.d/setup-instructions"
-WEB_SERVICE_FILE="/etc/systemd/system/chamboard_webserver.service"
-PYTHON_PACKAGES="python3 python3-pip python3-full python3-venv python3-flask python3-flask-cors
-CRON_INTERVAL="*/30 * * * *"  # Every 30 minutes
-SCRIPT_PATH="$PROJECT_DIR/resources/chamboard.py"  # Full path to chamboard.py
-CURRENT_LOG="$LOG_DIR/chamboard.log"  # Current log file
-ARCHIVE_RETENTION=3  # Number of archived logs to retain
-
 # Check if SPI is enabled
 echo "Checking if SPI is enabled..."
 if ! ls /dev/spidev0.* > /dev/null 2>&1; then
@@ -31,11 +18,11 @@ else
     echo "SPI is enabled."
 fi
 
-# Ensure the script exists
-if [ ! -f "$SCRIPT_PATH" ]; then
-    echo "ERROR: chamboard.py not found, please ensure you have downloaded or cloned the full repo: https://github.com/gpeterson78/chamboard."
-    exit 1
-fi
+# Variables
+PROJECT_DIR="$HOME/chamboard"
+VENV_DIR="$PROJECT_DIR/venv"
+MOTD_INSTRUCTIONS="/etc/motd.d/setup-instructions"
+PYTHON_PACKAGES="python3 python3-pip python3-full python3-venv"
 
 # Ensure the script is not run as root
 if [ "$(id -u)" -eq 0 ]; then
@@ -155,7 +142,7 @@ else
 fi
 
 # Inform the user that a reboot is required
-# echo "SPI has been enabled. A reboot is required to apply changes."
+echo "SPI has been enabled. A reboot is required to apply changes."
 
 # Install Python libraries for e-paper display
 echo "Installing Python libraries for the e-paper display..."
@@ -174,148 +161,6 @@ rm -rf /tmp/e-Paper.zip /tmp/e-Paper
 # Deactivate virtual environment
 deactivate
 
-# # Webserver Setup
-# if systemctl is-active --quiet chamboard_webserver.service; then
-#     echo "The Chamboard webserver is already running."
-#     read -p "Do you want to keep it running? (y/n): " KEEP_WEBSERVER
-#     if [[ "$KEEP_WEBSERVER" =~ ^[Nn]$ ]]; then
-#         echo "Stopping and disabling the webserver..."
-#         sudo systemctl stop chamboard_webserver.service
-#         sudo systemctl disable chamboard_webserver.service
-#     else
-#         echo "Webserver will remain running."
-#     fi
-# else
-#     read -p "Do you want to enable the local webserver to serve static content? (y/n): " ENABLE_WEBSERVER
-#     if [[ "$ENABLE_WEBSERVER" =~ ^[Yy]$ ]]; then
-#         echo "Creating systemd service for webserver..."
-#         sudo bash -c "cat > $WEB_SERVICE_FILE" <<EOF
-# [Unit]
-# Description=Chamboard Local Webserver
-# After=network.target
-
-# [Service]
-# ExecStart=python3 -m http.server 8080 --directory $DOCS_DIR
-# WorkingDirectory=$DOCS_DIR
-# Restart=always
-# User=$USER
-# Group=$USER
-
-# [Install]
-# WantedBy=multi-user.target
-# EOF
-
-#         sudo systemctl daemon-reload
-#         sudo systemctl enable chamboard_webserver.service
-#         sudo systemctl start chamboard_webserver.service
-#         echo "Webserver enabled at http://localhost:80"
-#     else
-#         echo "Webserver setup skipped."
-#     fi
-# fi
-
-# Webserver Setup
-if systemctl is-active --quiet chamboard_webserver.service; then
-    echo "The Chamboard webserver is already running."
-    read -p "Do you want to keep it running? (y/n): " KEEP_WEBSERVER
-    if [[ "$KEEP_WEBSERVER" =~ ^[Nn]$ ]]; then
-        echo "Stopping and disabling the webserver..."
-        sudo systemctl stop chamboard_webserver.service
-        sudo systemctl disable chamboard_webserver.service
-    else
-        echo "Webserver will remain running."
-    fi
-else
-    read -p "Do you want to enable the local webserver to serve static content and APIs? (y/n): " ENABLE_WEBSERVER
-    if [[ "$ENABLE_WEBSERVER" =~ ^[Yy]$ ]]; then
-        echo "Creating systemd service for webserver..."
-        sudo bash -c "cat > $WEB_SERVICE_FILE" <<EOF
-[Unit]
-Description=Chamboard Local Webserver with API
-After=network.target
-
-[Service]
-ExecStart=python3 $PROJECT_DIR/resources/chamboard_webserver.py
-WorkingDirectory=$DOCS_DIR
-Restart=always
-User=$USER
-Group=$USER
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-        sudo systemctl daemon-reload
-        sudo systemctl enable chamboard_webserver.service
-        sudo systemctl start chamboard_webserver.service
-        echo "Webserver enabled at http://localhost:8080"
-    else
-        echo "Webserver setup skipped."
-    fi
-fi
-
-# Create log directory if it doesn't exist
-mkdir -p "$LOG_DIR"
-
-# # Add the cron job
-# echo "Setting up cron job to run chamboard.py every 30 minutes..."
-# (crontab -l 2>/dev/null | grep -v "$SCRIPT_PATH"; echo "$CRON_INTERVAL $HOME/chamboard/venv/bin/python $SCRIPT_PATH >> $CURRENT_LOG 2>&1") | crontab -
-
-# # Add a cron job for log rotation
-# echo "Setting up log rotation..."
-# LOG_ROTATION_SCRIPT="$LOG_DIR/rotate_logs.sh"
-# cat <<EOF > "$LOG_ROTATION_SCRIPT"
-# #!/bin/bash
-
-# # Rotate logs if chamboard.log is older than 30 days
-# if [ -f "$CURRENT_LOG" ]; then
-#     LOG_AGE=\$(find "$CURRENT_LOG" -type f -mtime +30)
-#     if [ "\$LOG_AGE" ]; then
-#         ARCHIVE_NAME="\$LOG_DIR/chamboard_\$(date +'%Y-%m-%d').log"
-#         mv "$CURRENT_LOG" "\$ARCHIVE_NAME"
-#         echo "Archived log to \$ARCHIVE_NAME"
-#     fi
-# fi
-
-# # Cleanup old archived logs
-# ARCHIVED_LOGS=\$(ls -t "$LOG_DIR"/chamboard_*.log 2>/dev/null | tail -n +\$((ARCHIVE_RETENTION + 1)))
-# if [ "\$ARCHIVED_LOGS" ]; then
-#     echo "\$ARCHIVED_LOGS" | xargs rm -f
-#     echo "Cleaned up old archived logs."
-# fi
-# EOF
-
-# chmod +x "$LOG_ROTATION_SCRIPT"
-
-# # Schedule the log rotation script to run daily at midnight
-# (crontab -l 2>/dev/null | grep -v "$LOG_ROTATION_SCRIPT"; echo "0 0 * * * $LOG_ROTATION_SCRIPT") | crontab -
-
-# echo "Cron jobs added successfully. You can verify them with 'crontab -l'."
-# echo "Logs are located in $LOG_DIR."
-
-# Add the cron job safely
-echo "Setting up cron job to run chamboard.py every 30 minutes..."
-
-# Temporary file for the new crontab
-TMP_CRON=$(mktemp)
-
-# Safely initialize or overwrite the crontab
-crontab -l 2>/dev/null > "$TMP_CRON" || echo "# New crontab initialized" > "$TMP_CRON"
-
-# Remove any existing chamboard.py cron job and append the new one
-grep -vF "$SCRIPT_PATH" "$TMP_CRON" > "${TMP_CRON}_new"
-echo "$CRON_INTERVAL $HOME/chamboard/venv/bin/python $SCRIPT_PATH >> $CURRENT_LOG 2>&1" >> "${TMP_CRON}_new"
-
-# Install the new crontab
-crontab "${TMP_CRON}_new" && echo "Cron job added successfully!"
-
-# Cleanup
-rm -f "$TMP_CRON" "${TMP_CRON}_new"
-
-# Verify the new crontab
-echo "Final crontab:"
-crontab -l
-
 # Create a one-time login message
 if [ ! -f "$MOTD_INSTRUCTIONS" ]; then
     echo "Creating one-time setup instructions for next login..."
@@ -328,10 +173,6 @@ next steps:
 1. Navigate to the project directory: cd $PROJECT_DIR
 2. Activate the virtual environment: source $VENV_DIR/bin/activate
 3. Run your Playwright script inside the virtual environment.
-
-Recommended: Enable remote access via Tailscale
-- For simple and secure remote management, consider setting up Tailscale.
-- See README.md for more info.
 
 to cleanup this message...
 sudo rm -f $MOTD_INSTRUCTIONS

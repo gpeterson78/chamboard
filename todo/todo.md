@@ -1,4 +1,0 @@
-- [ ] setup script fix (enable webserver needs to be default)
-- [ ] finish backend screenshot logic
-- [ ] documentation
-- [ ] unify /docs/index.html and /resources/main.html

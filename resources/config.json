@@ -1,5 +1,5 @@
 {
   "use_backend": true,  // Set to true if using the internal web server for comments
   "scrape_url": "https://www.snand.org/wp-json/wp/v2/comments?post=3131",  // The URL to scrape for WordPress comments
-  "use_internal_messages": false  // Set to true if using the internal message server
+  "use_internal_messages": true  // Set to true if using the internal message server
 }

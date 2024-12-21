@@ -1,3 +1,6 @@
+# python script to display a screenshot to the waveshare epaper display
+# for testing and development purposes
+
 from PIL import Image
 from waveshare_epd import epd7in5_V2  # Adjust for your specific display model
 

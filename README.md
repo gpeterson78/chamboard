@@ -2,9 +2,27 @@
 
 ![Chamboard Logo](./docs/chamboard.jpeg)
 
-Chamboard is an e-paper display designed to act as a reminder board for an aging parent. This project allows you to display messages, reminders, or notes pulled dynamically from a WordPress site or a built-in local web server.
+Chamboard is an e-paper display designed to act as a reminder board for an aging parent. It dynamically pulls messages, reminders, or notes from a WordPress site or a built-in local web server.  Chamboard is named for my mom, lovingly nickamed Chambray.  When you build such a project, is there any other name I could have used?
 
-Initially inspired by Jan Miksovsky's [momboard](https://github.com/JanMiksovsky/momboard), this project has taken a new direction with custom hardware and software to better suit its purpose.
+This whole thing started when I stumbled across Jan Miksovsky's [Momboard](https://github.com/JanMiksovsky/momboard). His project is great—polished, professional, and way more thought-out than my little hack. But I’m a nerd who likes to DIY, and I’ve got Raspberry Pis and Linux servers strewn all over my house. So instead of dropping money on an expensive e-reader, I decided to cobble together my own e-paper display.
+
+---
+
+## The Story Behind Chamboard
+
+At first, I thought I’d just modify Momboard for my setup. That plan fell apart pretty quickly when I realized I’d have to use expensive hardware. I’m cheap and stubborn, so I figured I could make something work with what I had on hand or what I could hack together cheaply. I've got all these pi's laying around so I picked up a Waveshare e-paper display and assumed it would work like a regular (albeit slow) display.
+
+Spoiler: it doesn’t. Turns out, you need to push images to the display via SPI. This was new territory for me, but I’ve been meaning to learn Python anyway, and the Waveshare display has all kinds of Python support. Challenge accepted. Before I knew it, I had the thing displaying images and I was pretty impressed with myself.
+
+Then came the question of where to get the content. While Momboard has a JSON host, I wanted something simpler (and let’s be honest—lazier). I already host my own WordPress blog, figured there had to be a way to use it as the backend. So I figured I'd find a way to just point the script at the WordPress API and scrape comments from a page. It wound up working like a charm.
+
+At this point, I had a fully operational display board. It was fun, functional, and, well, completely useless unless you happen to run a WordPress blog hacked together like mine. Clearly, it needed a backend of its own.
+
+I figured Python was already in the picture, so why not see where else I could take it.  First up, I wanted to have an internal web host so that I didn't have to rely on gitlab.  That was easy, so should the rest be, right?  I mean, in truth it was, but man, it took a while.  Backend wasn't too difficult but getting everything all tied together was a chore that took the majority of the time building this little thing.  But, in the end, it pretty much works as I intended.  Read on for the details in case you want to put together one of your own.
+
+None of this would’ve been possible without AI—because let’s face it, we live in the future, and I’ll take all the help I can get.
+
+---
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -29,7 +47,7 @@ The project is built with Python and tested on a **Raspberry Pi Zero 2 W**.
 ---
 
 ## Parts List
-To build Chamboard, you will need the following components (these are **NOT** affiliated links, just examples):
+To build Chamboard, you’ll need:
 
 | **Item**                                                                                  | **Description**                                                |
 | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
@@ -60,40 +78,19 @@ To build Chamboard, you will need the following components (these are **NOT** af
 3. Follow the prompts during the installation.
 
 ### 3. Enable the Web Server (Optional)
-During setup, you will be asked if you'd like to enable the local web server. If enabled, this will serve the static content located in `/docs` on port **8080**.
+During setup, you’ll be asked if you want to enable the local web server. If enabled, it’ll serve static content from `/docs` on port **8080**.  There's really no reason not to.
 
-Access it via:
+Access it at:
 ```
 http://<raspberry-pi-ip>:8080
+or
+http://<rasberry-pi-ip>:8080/settings
 ```
 
-This feature is planned for future functionality and currently serves as a placeholder.[^1]
-
 ### 4. Reboot the Device
-Once setup is complete, the device will reboot and the Chamboard script will begin capturing content and displaying it on the e-paper screen.
+Once setup is complete, the device will reboot, and Chamboard will start displaying content.
 
 ---
-
-### 5. Remote Access Options
-
-For managing Chamboard remotely, it is recommended to set up a remote access solution like **Tailscale** or an alternative VPN of your choice. This is especially useful if your device is located behind a NAT (e.g., at home) and you want secure access without port forwarding.
-
-### Why Use Remote Access?
-
-- **Manage Chamboard Anywhere**: Access your Raspberry Pi from your phone, laptop, or another device, even if it's on a different network.
-- **Simplify Configuration**: Securely SSH into the Pi to tweak scripts, update content, or troubleshoot issues.
-- **Optional Backup**: If you serve local web content as fallback (e.g., on port 8080), remote access allows you to view it from any device.
-
----
-
-### Option 1: Tailscale VPN
-
-**Tailscale** is a simple, free, and secure VPN that uses WireGuard under the hood and what Chamboard recommends. It creates a private network between your devices, so you can access your Raspberry Pi as if it were on the same local network.
-
-#### Suggested Use Cases:
-- SSH into your Pi:
-   ```bash
-   ssh pi@<tailscale-ip>
 
 ## How It Works
 1. **Screenshot Capture**: A Python script uses Playwright (WebKit) to capture screenshots of a specified URL.
@@ -104,21 +101,27 @@ For managing Chamboard remotely, it is recommended to set up a remote access sol
 ---
 
 ## Usage
-1. Ensure the Raspberry Pi is powered on and connected to the internet.
+1. Power on the Raspberry Pi and connect it to the internet.
 2. By default, Chamboard will:
    - Pull content from the configured WordPress site.
    - Refresh the display every 30 minutes.
-3. Access the fallback web server at:
+3. Access the internal web server at:
    ```
    http://<raspberry-pi-ip>:8080
    ```
-4. Logs are stored in the `logs/` directory for troubleshooting.
-5. Recommended: setup a remote access for management via something like tailscale.
+4. Settings are available at http://<raspberry-pi-ip>:8080/settings.html or just click on the Chamboard logo.
+5. Logs are stored in the `logs/` directory for troubleshooting.
+6. Chamboard is designed for local administration and should not be exposed to the internet because  it is hilariously insecure (although it needs an internet connection for remote wordpress scraping).  For remote management, it's suggestted to setup Tailscale or a similar secure service.  this is at your own risk.
+
+---
+
+## 3D Printed Frame
+To house your Chamboard, you can use a 3D-printed frame. The one I used is available on [Makerworld](https://makerworld.com/en/models/787533).
 
 ---
 
 ### Contributions
-Feel free to contribute to the project by submitting issues, pull requests, or feature suggestions.
+Chamboard is meant to be hacked, shared, and enjoyed. Got suggestions? Feedback? Bring it on—just don’t tell me how insecure it is. I know, it’s a [snand](https://www.snand.org) project, after all.
 
 ---
 
@@ -127,10 +130,5 @@ This project is licensed under the MIT License.
 
 ---
 
-Thank you for using Chamboard! 😊
+Thanks for checking out Chamboard! 😊
 
-[^1]: future plans and additions:
-  - Allow message input directly from the local web server.
-  - Add input options for a WordPress thread/custom URL to pull content from.
-  - Implement a web-based configuration interface that is simple, functional, and accessible via a phone.
-  - Instructions/setup options for tailscale or other remote access.

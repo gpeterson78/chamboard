@@ -55,28 +55,38 @@
             font-family: monospace;
             position: relative;
         }
-        #logTitle {
-            font-size: 0.8em;
-            color: #333;
-            margin-bottom: 5px;
-        }
-        #screenshot {
-            display: none;
-            margin-top: 20px;
-            width: 100%;
-            border: 1px solid #333;
-        }
         .disabled {
             opacity: 0.5;
             pointer-events: none;
+        }
+        .validation-error {
+            color: red;
+            display: none;
+        }
+        #scrapeUrlInstructions {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
     <h1>Chamboard Settings</h1>
     <form id="settingsForm">
-        <label for="scrapeUrl">URL to Scrape:</label>
-        <input type="text" id="scrapeUrl" placeholder="https://www.example.com/chamboard">
+        <label for="scrapeUrl">WordPress Page to Scrape:</label>
+        <input type="text" id="scrapeUrl" placeholder="https://www.example.com/wp-json/wp/v2/comments?post=3131">
+        <p id="scrapeUrlInstructions">
+            Please enter the WordPress API URL for comments of a specific post. Example:
+            <code>https://www.example.com/wp-json/wp/v2/comments?post=3131</code>.
+            <br>
+            <strong>How to find the WordPress API URL:</strong>
+            <ol>
+                <li>Visit the WordPress post page in a browser.</li>
+                <li>Locate the post ID (e.g., in the URL as <code>?p=3131</code>).</li>
+                <li>Construct the API URL: <code>https://www.example.com/wp-json/wp/v2/comments?post=POST_ID</code>.</li>
+            </ol>
+        </p>
+        <p id="validationMessage" class="validation-error">Invalid URL. Please ensure it follows the format: https://www.example.com/wp-json/wp/v2/comments?post=XXXX.</p>
 
         <label>
             <input type="checkbox" id="useInternalServer">
@@ -99,21 +109,30 @@
         <button id="deleteMessage" type="button" class="tiny-button">Delete Last</button>
     </form>
     <div id="feedback"></div>
-    <div id="logTitle">Message Log:</div>
     <div id="logOutput">Loading comments...</div>
-    <img id="screenshot" src="/resources/screenshot.png" alt="Screenshot Output">
 
     <script>
         const feedback = document.getElementById('feedback');
         const saveFeedback = document.getElementById('saveFeedback');
         const logOutput = document.getElementById('logOutput');
-        const logTitle = document.getElementById('logTitle');
-        const screenshot = document.getElementById('screenshot');
         const postMessageButton = document.getElementById('postMessage');
         const deleteMessageButton = document.getElementById('deleteMessage');
         const useInternalMessages = document.getElementById('useInternalMessages');
         const scrapeUrlInput = document.getElementById('scrapeUrl');
         const useInternalServer = document.getElementById('useInternalServer');
+        const validationMessage = document.getElementById('validationMessage');
+
+        // Input validation for WordPress API URL
+        scrapeUrlInput.addEventListener('blur', () => {
+            const url = scrapeUrlInput.value.trim();
+            const regex = /^https:\/\/.+\/wp-json\/wp\/v2\/comments\?post=\d+$/;
+
+            if (!regex.test(url)) {
+                validationMessage.style.display = 'block';
+            } else {
+                validationMessage.style.display = 'none';
+            }
+        });
 
         // Sync "Use Internal Webserver" with "Use Internal Message Server"
         useInternalMessages.addEventListener('change', () => {
@@ -125,17 +144,41 @@
             }
         });
 
-        // Disable checkbox interactions when "Use Internal Webserver" is disabled
+        // Enforce logic for "Use Internal Webserver"
         useInternalServer.addEventListener('change', () => {
             if (!useInternalServer.checked) {
                 useInternalMessages.checked = false;
             }
         });
 
-        // Enforce required fields only for Post Message
+        // Save settings to the backend
+        document.getElementById('settingsForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const config = {
+                use_backend: useInternalServer.checked,
+                scrape_url: scrapeUrlInput.value,
+                use_internal_messages: useInternalMessages.checked
+            };
+
+            try {
+                const response = await fetch('/update_config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                const result = await response.json();
+                saveFeedback.innerText = result.message || 'Settings saved successfully!';
+                loadComments();
+            } catch (error) {
+                saveFeedback.innerText = 'Error saving settings: ' + error.message;
+            }
+        });
+
+        // Post a message to the backend
         postMessageButton.addEventListener('click', async () => {
-            const author = document.getElementById('author').value;
-            const message = document.getElementById('message').value;
+            const author = document.getElementById('author').value.trim();
+            const message = document.getElementById('message').value.trim();
 
             if (!author || !message) {
                 feedback.innerText = 'Both Author and Message are required.';
@@ -165,60 +208,24 @@
             }
         });
 
-        // Save settings to the backend
-        document.getElementById('settingsForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const scrapeUrl = scrapeUrlInput.value;
-
-            const config = {
-                use_backend: useInternalServer.checked,
-                scrape_url: scrapeUrl,
-                use_internal_messages: useInternalMessages.checked
-            };
+        // Delete the previous message
+        deleteMessageButton.addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to delete the last message?')) return;
 
             try {
-                const response = await fetch('/update_config', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(config)
+                const response = await fetch('/delete_last_comment', {
+                    method: 'DELETE'
                 });
 
                 const result = await response.json();
-                saveFeedback.innerText = result.message || 'Settings saved successfully!';
-
-                if (/wp-json\/wp\/v2\/comments\?/.test(scrapeUrl)) {
-                    // WordPress-specific logic
-                    screenshot.style.display = 'none';
-                    logOutput.style.display = 'block';
+                if (result.success) {
+                    feedback.innerText = result.message || 'Last message deleted successfully!';
                     loadComments();
                 } else {
-                    // Arbitrary URL logic
-                    logOutput.style.display = 'none';
-                    screenshot.style.display = 'block';
+                    throw new Error(result.message || 'Unknown error occurred.');
                 }
             } catch (error) {
-                saveFeedback.innerText = 'Error saving settings: ' + error.message;
-            }
-        });
-
-        // Delete the previous message
-        deleteMessageButton.addEventListener('click', async () => {
-            if (confirm('Are you sure you want to delete the last message?')) {
-                try {
-                    const response = await fetch('/delete_last_comment', {
-                        method: 'DELETE'
-                    });
-
-                    const result = await response.json();
-                    if (result.success) {
-                        feedback.innerText = result.message || 'Last message deleted successfully!';
-                        loadComments();
-                    } else {
-                        throw new Error(result.message || 'Unknown error occurred.');
-                    }
-                } catch (error) {
-                    feedback.innerText = 'Error deleting message: ' + error.message;
-                }
+                feedback.innerText = 'Error deleting message: ' + error.message;
             }
         });
 
@@ -256,12 +263,7 @@
                 useInternalMessages.checked = config.use_internal_messages || false;
                 useInternalServer.classList.toggle('disabled', useInternalMessages.checked);
 
-                if (/wp-json\/wp\/v2\/comments\?/.test(config.scrape_url)) {
-                    loadComments();
-                } else {
-                    logOutput.style.display = 'none';
-                    screenshot.style.display = 'block';
-                }
+                loadComments(); // Load comments for the log
             } catch (error) {
                 feedback.innerText = 'Error loading settings: ' + error.message;
             }
