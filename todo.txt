@@ -1,0 +1,4 @@
+chamboard todo
+1. finish service backend
+2. containerize backend
+3. drastically prune install process (installs EVERYTHING right now)
